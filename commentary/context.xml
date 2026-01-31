@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    context.xml - Konfiguration für die Commentary-Anwendung in Tomcat
+    
+    Diese Datei wird an folgendem Ort platziert:
+    $CATALINA_BASE/conf/Catalina/localhost/commentary.xml
+    
+    Sie enthält:
+    1. CookieProcessor Konfiguration (SameSite und Secure Flags)
+    2. DataSource Konfiguration für Datenbankverbindungen
+    3. Manager Konfiguration für Session-Persistenz
+-->
+<Context docBase="commentary" sessionCookiePath="/">
+    
+    <!-- ==================== CookieProcessor ==================== -->
+    <!--
+        SameSite=None ist notwendig, damit das Browsing über iframe
+        vom Web Intelligence aus funktioniert.
+        
+        secure="true" erzwingt HTTPS für die Cookies.
+        Dies ist NOTWENDIG für Cross-Site-Szenarien.
+        
+        httpOnly="true" verhindert Zugriff auf Cookies über JavaScript
+        (Schutz vor XSS-Angriffen).
+    -->
+    <CookieProcessor 
+        sameSite="None" 
+        secure="true" 
+        httpOnly="true" 
+        useHttpOnly="true" />
+    
+    <!-- ==================== DataSource ==================== -->
+    <!--
+        Konfiguration der Datenbankverbindung für Commentary-Daten.
+        
+        WICHTIG: Die genauen Verbindungsparameter müssen an Ihre
+        Datenbankumgebung angepasst werden!
+        
+        factory: org.apache.tomcat.jdbc.pool.DataSourceFactory
+                (Moderne Pool-Implementierung)
+        
+        driverClassName: com.sybase.jdbc.SybDriver
+                (Adapter für Sybase/SAP ASE Datenbanken)
+        
+        username/password: Benutzer mit ReadWrite-Berechtigung
+        
+        maxActive: Maximale Anzahl von gleichzeitigen Verbindungen
+        maxIdle: Maximale Anzahl von nicht benutzten Verbindungen im Pool
+        maxWait: Maximale Wartezeit (ms) beim Abrufen einer Verbindung
+    -->
+    <Resource 
+        name="jdbc/COMCON"
+        auth="Container"
+        type="javax.sql.DataSource"
+        factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+        driverClassName="com.sybase.jdbc.SybDriver"
+        url="jdbc:sybase:Tds:[HOST]:[PORT]/[DATABASE]"
+        username="[USERNAME]"
+        password="[PASSWORD]"
+        maxActive="20"
+        maxIdle="5"
+        maxWait="30000"
+        validationQuery="select 1"
+        validationInterval="30000"
+        testOnBorrow="true"
+        testOnReturn="false"
+        testWhileIdle="true"
+        removeAbandoned="true"
+        removeAbandonedTimeout="60"
+        logAbandoned="true" />
+    
+    <!-- ==================== Manager (Session-Persistenz) ==================== -->
+    <!--
+        Konfiguriert die Speicherung von Sessions.
+        
+        Für Production-Umgebungen wird empfohlen:
+        - Verwendung von Redis oder Memcached für verteilte Sessions
+        - Persistente Speicherung in der Datenbank
+        
+        Diese Basiskonfiguration speichert Sessions im Speicher.
+        Sie werden bei Neustart verloren.
+    -->
+    <Manager pathname="" />
+    
+    <!-- ==================== Logging ==================== -->
+    <!--
+        Die Logging-Konfiguration erfolgt über die Datei:
+        $CATALINA_BASE/conf/logging.properties
+        
+        oder über die JUL-Konfiguration im src/main/resources Ordner.
+    -->
+    
+    <!-- ==================== Zusätzliche Sicherheitsoptionen ==================== -->
+    <!--
+        Diese Optionen können je nach Anforderungen aktiviert werden:
+        
+        useHttpOnly="true" - Verhindert JavaScript-Zugriff auf Session-Cookies
+        sessionCookiePath="/" - Pfad für Session-Cookies
+        sessionCookieDomain=".example.com" - Domain für Cross-Site-Sessions
+    -->
+    
+</Context>
